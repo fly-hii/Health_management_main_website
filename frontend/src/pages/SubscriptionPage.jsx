@@ -149,8 +149,7 @@ export default function SubscriptionPage() {
     setConnectionStatus('idle')
     setConnectionMessage('')
     try {
-      const superBackendUrl = import.meta.env.VITE_SUPER_BACKEND_URL || 'http://localhost:5000'
-      const res = await axios.post(`${superBackendUrl}/api/auth/test-db-connection`, {
+      const res = await axios.post('/api/auth/test-db-connection', {
         host,
         port: parseInt(port) || 3306,
         database_name,

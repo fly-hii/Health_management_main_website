@@ -7,6 +7,10 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SocketProvider } from './context/SocketContext.jsx'
+import axios from 'axios'
+
+const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || ''
+axios.defaults.baseURL = apiUrl.startsWith('http') ? apiUrl.replace(/\/api$/, '') : ''
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
