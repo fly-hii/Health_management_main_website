@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const { Op } = require('sequelize')
 const { User, AuditLog } = require('../models')
+const { isValidEmail, getPasswordComplexityError } = require('../utils/validators')
+const { sendOtpEmail, sendPasswordResetEmail } = require('../utils/emailService')
+
+const VALID_ROLES = ['admin', 'doctor', 'nurse', 'pharmacy', 'laboratory', 'patient']
 
 const generateTokens = (userId, role) => {
   const token = jwt.sign(
@@ -24,6 +28,9 @@ exports.login = async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required' })
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' })
     }
 
     const query = role ? { email, role } : { email }
@@ -79,9 +86,9 @@ exports.sendOTP = async (req, res) => {
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 min
     await user.save()
 
-    // In production: send email with nodemailer
-    // For now, log to console
-    console.log(`🔐 OTP for ${email}: ${otp}`)
+    // Send OTP email (non-blocking — email failure won't break the API)
+    sendOtpEmail(user.email, user.name, otp, 'login')
+      .catch(err => console.error('⚠️  OTP email failed:', err.message))
 
     res.json({ success: true, message: 'OTP sent to your email address.' })
   } catch (error) {
@@ -129,8 +136,10 @@ exports.forgotPassword = async (req, res) => {
       user.passwordResetToken = resetToken
       user.passwordResetExpiry = new Date(Date.now() + 30 * 60 * 1000) // 30 min
       await user.save()
-      // In production: send email with reset link
-      console.log(`🔗 Password reset token for ${email}: ${resetToken}`)
+
+      // Send password reset email (non-blocking)
+      sendPasswordResetEmail(user.email, user.name, resetToken)
+        .catch(err => console.error('⚠️  Password reset email failed:', err.message))
     }
 
     res.json({ success: true, message: 'If this email is registered, a reset link has been sent.' })
@@ -143,6 +152,14 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body
+    if (!token || !password) {
+      return res.status(400).json({ success: false, message: 'Reset token and new password are required' })
+    }
+    const pwdError = getPasswordComplexityError(password)
+    if (pwdError) {
+      return res.status(400).json({ success: false, message: pwdError })
+    }
+
     const user = await User.findOne({
       where: {
         passwordResetToken: token,
@@ -204,6 +221,21 @@ exports.logout = async (req, res) => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ success: false, message: 'name, email, password, and role are required' })
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' })
+    }
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(400).json({ success: false, message: `Invalid role. Allowed: ${VALID_ROLES.join(', ')}` })
+    }
+    const pwdError = getPasswordComplexityError(password)
+    if (pwdError) {
+      return res.status(400).json({ success: false, message: pwdError })
+    }
+
     const existing = await User.findOne({ where: { email } })
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' })

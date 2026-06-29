@@ -15,7 +15,7 @@ const portals = [
     desc: 'Book appointments, view medical reports, and check prescriptions.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: 'https://health-dashboards-patient-frontend.vercel.app',
+    to: import.meta.env.VITE_PATIENT_URL || 'https://health-dashboards-patient-frontend.vercel.app',
     badge: 'PATIENT ACCESS',
     stats: {
       title: 'Patient Portal Stats',
@@ -35,7 +35,7 @@ const portals = [
     desc: 'Manage appointment queues, update patient charts, and issue prescriptions.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: 'https://health-dashboards-doctor-frontend.vercel.app',
+    to: import.meta.env.VITE_DOCTOR_URL || 'https://health-dashboards-doctor-frontend.vercel.app',
     badge: 'CLINICAL DEPT',
     stats: {
       title: 'Clinical Operations',
@@ -55,7 +55,7 @@ const portals = [
     desc: 'Record clinical vitals, manage ward status, and coordinate care schedules.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: 'https://health-dashboards-nurse-frontend.vercel.app',
+    to: import.meta.env.VITE_NURSE_URL || 'https://health-dashboards-nurse-frontend.vercel.app',
     badge: 'NURSING & WARD',
     stats: {
       title: 'Nursing Stations',
@@ -75,7 +75,7 @@ const portals = [
     desc: 'Fulfill prescriptions, track stock levels, and coordinate drug batches.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: 'https://health-dashboards-pharma-frontend.vercel.app',
+    to: import.meta.env.VITE_PHARMACY_URL || 'https://health-dashboards-pharma-frontend.vercel.app',
     badge: 'DISPENSARY',
     stats: {
       title: 'Pharmacy Inventory',
@@ -95,7 +95,7 @@ const portals = [
     desc: 'Pathology samples tracking, testing logs, and diagnostic reports.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/laboratory/login',
+    to: import.meta.env.VITE_LAB_URL || '/laboratory/login',
     badge: 'DIAGNOSTICS',
     stats: {
       title: 'Laboratory Operations',
@@ -115,7 +115,7 @@ const portals = [
     desc: 'Audit system logs, configure user roles, and manage hospital settings.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: 'https://health-dashboards-hospital-admin-fr.vercel.app',
+    to: import.meta.env.VITE_ADMIN_URL || 'https://health-dashboards-hospital-admin-fr.vercel.app',
     badge: 'SYS ADMIN',
     stats: {
       title: 'System Health & Security',

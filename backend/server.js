@@ -16,14 +16,33 @@ if (!process.env.PORT) {
 // Connect to Database
 connectDB()
 
+// Build allowed origins list from env
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.CLIENT_URL || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean)
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, server-to-server, mobile apps)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    callback(new Error(`CORS: origin "${origin}" not allowed`))
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}
+
 const app = express()
 const server = http.createServer(app)
 
 // Socket.io Setup
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 })
 
@@ -33,7 +52,7 @@ app.set('io', io)
 // Middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(morgan('dev'))
 
 // Rate Limiter

@@ -117,37 +117,37 @@ const portals = [
     id: 'admin', icon: Shield, label: 'Admin Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Super admin control panel to manage hospital, users, and all departments.',
-    to: 'https://health-dashboards-hospital-admin-fr.vercel.app',
+    to: import.meta.env.VITE_ADMIN_URL || 'https://health-dashboards-hospital-admin-fr.vercel.app',
   },
   {
     id: 'doctor', icon: Stethoscope, label: 'Doctors Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage appointments, patients, prescriptions and medical records.',
-    to: 'https://health-dashboards-doctor-frontend.vercel.app',
+    to: import.meta.env.VITE_DOCTOR_URL || 'https://health-dashboards-doctor-frontend.vercel.app',
   },
   {
     id: 'nurse', icon: UserCheck, label: 'Nurses Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage patient care, vitals, treatment and nursing tasks.',
-    to: 'https://health-dashboards-nurse-frontend.vercel.app',
+    to: import.meta.env.VITE_NURSE_URL || 'https://health-dashboards-nurse-frontend.vercel.app',
   },
   {
     id: 'pharmacy', icon: Pill, label: 'Pharmacy Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage prescriptions, medicine inventory, orders and stock.',
-    to: 'https://health-dashboards-pharma-frontend.vercel.app',
+    to: import.meta.env.VITE_PHARMACY_URL || 'https://health-dashboards-pharma-frontend.vercel.app',
   },
   {
     id: 'laboratory', icon: FlaskConical, label: 'Laboratory Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage lab tests, reports, samples and laboratory operations.',
-    to: '/laboratory/login',
+    to: import.meta.env.VITE_LAB_URL || '/laboratory/login',
   },
   {
     id: 'patient', icon: User, label: 'Patient Portal', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'View appointments, reports, prescriptions and medical history.',
-    to: 'https://health-dashboards-patient-frontend.vercel.app',
+    to: import.meta.env.VITE_PATIENT_URL || 'https://health-dashboards-patient-frontend.vercel.app',
   },
 ]
 

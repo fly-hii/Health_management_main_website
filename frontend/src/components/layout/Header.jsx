@@ -17,12 +17,12 @@ const navLinks = [
 ]
 
 const portalLinks = [
-  { label: 'Admin', to: 'https://health-dashboards-hospital-admin-fr.vercel.app', icon: Shield, color: '#6366F1' },
-  { label: 'Doctor', to: 'https://health-dashboards-doctor-frontend.vercel.app', icon: Stethoscope, color: '#0F9D8A' },
-  { label: 'Nurse', to: 'https://health-dashboards-nurse-frontend.vercel.app', icon: UserCheck, color: '#8B5CF6' },
-  { label: 'Pharmacy', to: 'https://health-dashboards-pharma-frontend.vercel.app', icon: Pill, color: '#F59E0B' },
-  { label: 'Laboratory', to: '/laboratory/login', icon: FlaskConical, color: '#10B981' },
-  { label: 'Patient', to: 'https://health-dashboards-patient-frontend.vercel.app', icon: User, color: '#06B6D4' },
+  { label: 'Admin',      to: import.meta.env.VITE_ADMIN_URL    || 'https://health-dashboards-hospital-admin-fr.vercel.app', icon: Shield,       color: '#6366F1' },
+  { label: 'Doctor',     to: import.meta.env.VITE_DOCTOR_URL   || 'https://health-dashboards-doctor-frontend.vercel.app',  icon: Stethoscope,  color: '#0F9D8A' },
+  { label: 'Nurse',      to: import.meta.env.VITE_NURSE_URL    || 'https://health-dashboards-nurse-frontend.vercel.app',   icon: UserCheck,    color: '#8B5CF6' },
+  { label: 'Pharmacy',   to: import.meta.env.VITE_PHARMACY_URL || 'https://health-dashboards-pharma-frontend.vercel.app', icon: Pill,         color: '#F59E0B' },
+  { label: 'Laboratory', to: import.meta.env.VITE_LAB_URL      || '/laboratory/login',                                    icon: FlaskConical, color: '#10B981' },
+  { label: 'Patient',    to: import.meta.env.VITE_PATIENT_URL  || 'https://health-dashboards-patient-frontend.vercel.app',icon: User,         color: '#06B6D4' },
 ]
 
 const searchableItems = [

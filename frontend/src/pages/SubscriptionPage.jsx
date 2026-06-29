@@ -23,10 +23,11 @@ const registerSchema = z.object({
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
   country: z.string().default('India'),
-  cardNumber: z.string().min(16, 'Card number must be 16 digits').max(16, 'Card number must be 16 digits'),
-  cardName: z.string().min(3, 'Cardholder name is required'),
-  cardExpiry: z.string().regex(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Expiry must be MM/YY'),
-  cardCvv: z.string().min(3, 'CVV must be 3 digits').max(3, 'CVV must be 3 digits'),
+  // Card fields are validated manually per-step and are not re-processed on final submit
+  cardNumber: z.string().optional(),
+  cardName: z.string().optional(),
+  cardExpiry: z.string().optional(),
+  cardCvv: z.string().optional(),
   database_type: z.enum(['shared', 'external']).default('shared'),
   db_host: z.string().optional(),
   db_port: z.any().optional(),
@@ -35,6 +36,7 @@ const registerSchema = z.object({
   db_password: z.string().optional(),
   db_ssl: z.any().optional(),
 })
+
 
 const PLANS = [
   {
@@ -74,6 +76,8 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(false)
   const [registeredData, setRegisteredData] = useState(null)
   const [testingConnection, setTestingConnection] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState('idle') // 'idle' | 'success' | 'error'
+  const [connectionMessage, setConnectionMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showDbPassword, setShowDbPassword] = useState(false)
 
@@ -105,6 +109,12 @@ export default function SubscriptionPage() {
 
   const formValues = watch()
 
+  // Reset connection status if DB connection credentials change
+  useEffect(() => {
+    setConnectionStatus('idle')
+    setConnectionMessage('')
+  }, [formValues.db_host, formValues.db_port, formValues.db_name, formValues.db_user, formValues.db_password, formValues.db_ssl])
+
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       console.log('Form validation errors:', errors)
@@ -130,10 +140,14 @@ export default function SubscriptionPage() {
     const ssl_enabled = watch('db_ssl')
 
     if (!host || !database_name || !username || !password) {
-      return toast.warning('Please fill in all database credential fields to test the connection')
+      setConnectionStatus('error')
+      setConnectionMessage('Please fill in all database credential fields to test the connection')
+      return
     }
 
     setTestingConnection(true)
+    setConnectionStatus('idle')
+    setConnectionMessage('')
     try {
       const res = await axios.post('/api/auth/test-db-connection', {
         host,
@@ -145,14 +159,17 @@ export default function SubscriptionPage() {
       })
 
       if (res.data.success) {
-        toast.success(res.data.message || '✅ Connection test passed successfully!')
+        setConnectionStatus('success')
+        setConnectionMessage(res.data.message || 'Connection test successful — database credentials are valid')
       } else {
-        toast.error(res.data.message || '❌ Database connection failed')
+        setConnectionStatus('error')
+        setConnectionMessage(res.data.message || 'Database connection failed')
       }
     } catch (err) {
       console.error(err)
       const errMsg = err.response?.data?.message || 'Failed to establish connection to database.'
-      toast.error(errMsg)
+      setConnectionStatus('error')
+      setConnectionMessage(errMsg)
     } finally {
       setTestingConnection(false)
     }
@@ -250,14 +267,14 @@ export default function SubscriptionPage() {
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingTop: 100, paddingBottom: 80 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        
+
         {/* Progress Header */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div className="section-tag" style={{ background: 'rgba(15,157,138,0.1)', color: '#0F9D8A', borderColor: 'rgba(15,157,138,0.2)', margin: '0 auto 16px' }}>
             <Sparkles size={13} /> Complete Signup
           </div>
           <h1 style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 900, fontSize: 'clamp(28px, 4vw, 42px)', color: '#0B1F3A', marginBottom: 12 }}>
-            SaaS Subscription Checkout
+            Hospital Subscription Checkout
           </h1>
           <p style={{ color: '#64748B', fontSize: 16, fontWeight: 500 }}>
             Configure your tenant, enter payment details, and activate your dashboard.
@@ -351,7 +368,7 @@ export default function SubscriptionPage() {
                             <span style={{ fontWeight: 950, fontSize: 32, color: '#0B1F3A' }}>{p.priceLabel}</span>
                             <span style={{ fontSize: 13, color: '#94A3B8' }}>/ month</span>
                           </div>
-                          
+
                           {/* Divider */}
                           <div style={{ height: 1.5, background: '#F1F5F9', marginBottom: 20 }} />
 
@@ -365,7 +382,7 @@ export default function SubscriptionPage() {
                             ))}
                           </div>
                         </div>
-                        
+
                         <button
                           type="button"
                           style={{
@@ -452,7 +469,7 @@ export default function SubscriptionPage() {
                 {/* Billing cycle & Order Summary */}
                 <div style={{ background: '#0B1F3A', borderRadius: 24, padding: 28, color: 'white', alignSelf: 'start' }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, marginBottom: 16 }}>Order Summary</h4>
-                  
+
                   {/* Cycle Selector */}
                   <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 3, marginBottom: 20 }}>
                     <button
@@ -636,7 +653,7 @@ export default function SubscriptionPage() {
                     className="space-y-4"
                   >
                     <h4 style={{ fontSize: 13, fontWeight: 800, color: '#0B1F3A', marginBottom: 10 }}>Configure External DB Credentials</h4>
-                    
+
                     <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 16 }}>
                       <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Database Host / IP *</label>
@@ -717,6 +734,34 @@ export default function SubscriptionPage() {
                         {testingConnection ? 'Testing DB Connection...' : 'Test Connection Settings'}
                       </button>
                     </div>
+
+                    {connectionStatus !== 'idle' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          marginTop: 12,
+                          padding: '12px 16px',
+                          borderRadius: 12,
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 10,
+                          fontSize: 13,
+                          lineHeight: 1.4,
+                          fontWeight: 500,
+                          background: connectionStatus === 'success' ? '#ECFDF5' : '#FEF2F2',
+                          border: `1px solid ${connectionStatus === 'success' ? '#A7F3D0' : '#FECACA'}`,
+                          color: connectionStatus === 'success' ? '#065F46' : '#991B1B',
+                        }}
+                      >
+                        {connectionStatus === 'success' ? (
+                          <CheckCircle2 size={18} style={{ color: '#10B981', flexShrink: 0, marginTop: 1 }} />
+                        ) : (
+                          <AlertCircle size={18} style={{ color: '#EF4444', flexShrink: 0, marginTop: 1 }} />
+                        )}
+                        <span>{connectionMessage}</span>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
 
@@ -841,7 +886,7 @@ export default function SubscriptionPage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <a
-                  href="https://health-dashboards-hospital-admin-fr.vercel.app/login"
+                  href={`${import.meta.env.VITE_ADMIN_URL || 'https://health-dashboards-hospital-admin-fr.vercel.app'}/login`}
                   target="_blank"
                   rel="noreferrer"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: '#0F9D8A', color: 'white', fontWeight: 700, borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 14px rgba(15,157,138,0.3)' }}
@@ -854,7 +899,7 @@ export default function SubscriptionPage() {
           )}
         </AnimatePresence>
 
-      <style>{`
+        <style>{`
         @media (max-width: 900px) {
           .split-checkout {
             grid-template-columns: 1fr !important;
