@@ -117,25 +117,25 @@ const portals = [
     id: 'admin', icon: Shield, label: 'Admin Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Super admin control panel to manage hospital, users, and all departments.',
-    to: '/admin/login',
+    to: 'https://health-dashboards-hospital-admin-fr.vercel.app',
   },
   {
     id: 'doctor', icon: Stethoscope, label: 'Doctors Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage appointments, patients, prescriptions and medical records.',
-    to: '/doctor/login',
+    to: 'https://health-dashboards-doctor-frontend.vercel.app',
   },
   {
     id: 'nurse', icon: UserCheck, label: 'Nurses Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage patient care, vitals, treatment and nursing tasks.',
-    to: '/nurse/login',
+    to: 'https://health-dashboards-nurse-frontend.vercel.app',
   },
   {
     id: 'pharmacy', icon: Pill, label: 'Pharmacy Dashboard', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'Manage prescriptions, medicine inventory, orders and stock.',
-    to: '/pharmacy/login',
+    to: 'https://health-dashboards-pharma-frontend.vercel.app',
   },
   {
     id: 'laboratory', icon: FlaskConical, label: 'Laboratory Dashboard', color: '#0F9D8A',
@@ -147,7 +147,7 @@ const portals = [
     id: 'patient', icon: User, label: 'Patient Portal', color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.1)',
     desc: 'View appointments, reports, prescriptions and medical history.',
-    to: '/patient/login',
+    to: 'https://health-dashboards-patient-frontend.vercel.app',
   },
 ]
 
@@ -733,36 +733,43 @@ export default function HomePage() {
 
                         {/* Login CTA */}
                         <div style={{ marginTop: 'auto', zIndex: 2 }}>
-                          <Link
-                            to={activePortal.to}
-                            id={`portal-console-login-${activePortal.id}`}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 8,
-                              width: '100%',
-                              padding: '14px',
-                              borderRadius: '12px',
-                              background: activePortal.color,
-                              color: 'white',
-                              fontWeight: 700,
-                              fontSize: '14px',
-                              textDecoration: 'none',
-                              boxShadow: `0 8px 20px ${activePortal.color}25`,
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={e => {
-                              e.currentTarget.style.filter = 'brightness(1.1)'
-                              e.currentTarget.style.transform = 'translateY(-1px)'
-                            }}
-                            onMouseLeave={e => {
-                              e.currentTarget.style.filter = 'none'
-                              e.currentTarget.style.transform = 'none'
-                            }}
-                          >
-                            Enter {activePortal.label} Securely <ArrowRight size={15} />
-                          </Link>
+                          {(() => {
+                            const isExternal = activePortal.to.startsWith('http');
+                            const LinkComponent = isExternal ? 'a' : Link;
+                            const linkProps = isExternal ? { href: activePortal.to } : { to: activePortal.to };
+                            return (
+                              <LinkComponent
+                                id={`portal-console-login-${activePortal.id}`}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 8,
+                                  width: '100%',
+                                  padding: '14px',
+                                  borderRadius: '12px',
+                                  background: activePortal.color,
+                                  color: 'white',
+                                  fontWeight: 700,
+                                  fontSize: '14px',
+                                  textDecoration: 'none',
+                                  boxShadow: `0 8px 20px ${activePortal.color}25`,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.filter = 'brightness(1.1)';
+                                  e.currentTarget.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.filter = 'none';
+                                  e.currentTarget.style.transform = 'none';
+                                }}
+                                {...linkProps}
+                              >
+                                Enter {activePortal.label} Securely <ArrowRight size={15} />
+                              </LinkComponent>
+                            );
+                          })()}
                         </div>
                       </div>
                     </motion.div>

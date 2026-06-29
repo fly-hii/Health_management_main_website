@@ -106,7 +106,7 @@ export default function ChatAssistant() {
   }
 
   const suggestedPrompts = [
-    { label: 'Go to Pricing', text: 'How much does CarePlus cost and what plans are there?' },
+    { label: 'Subscribe / Checkout', text: 'How do I subscribe and sign up for CarePlus?' },
     { label: 'Doctor Login Portal', text: 'Take me to the Doctor login portal' },
     { label: 'Check System Status', text: 'Is the database and system status online right now?' },
     { label: 'About CarePlus', text: 'Tell me about the CarePlus hospital management system.' }

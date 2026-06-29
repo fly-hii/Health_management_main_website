@@ -11,7 +11,7 @@ export function SocketProvider({ children }) {
   const [notifications, setNotifications] = useState([])
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001', {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5009', {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,

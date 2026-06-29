@@ -15,7 +15,7 @@ const portals = [
     desc: 'Book appointments, view medical reports, and check prescriptions.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/patient/login',
+    to: 'https://health-dashboards-patient-frontend.vercel.app',
     badge: 'PATIENT ACCESS',
     stats: {
       title: 'Patient Portal Stats',
@@ -35,7 +35,7 @@ const portals = [
     desc: 'Manage appointment queues, update patient charts, and issue prescriptions.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/doctor/login',
+    to: 'https://health-dashboards-doctor-frontend.vercel.app',
     badge: 'CLINICAL DEPT',
     stats: {
       title: 'Clinical Operations',
@@ -55,7 +55,7 @@ const portals = [
     desc: 'Record clinical vitals, manage ward status, and coordinate care schedules.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/nurse/login',
+    to: 'https://health-dashboards-nurse-frontend.vercel.app',
     badge: 'NURSING & WARD',
     stats: {
       title: 'Nursing Stations',
@@ -75,7 +75,7 @@ const portals = [
     desc: 'Fulfill prescriptions, track stock levels, and coordinate drug batches.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/pharmacy/login',
+    to: 'https://health-dashboards-pharma-frontend.vercel.app',
     badge: 'DISPENSARY',
     stats: {
       title: 'Pharmacy Inventory',
@@ -115,7 +115,7 @@ const portals = [
     desc: 'Audit system logs, configure user roles, and manage hospital settings.',
     color: '#0F9D8A',
     bg: 'rgba(15, 157, 138, 0.08)',
-    to: '/admin/login',
+    to: 'https://health-dashboards-hospital-admin-fr.vercel.app',
     badge: 'SYS ADMIN',
     stats: {
       title: 'System Health & Security',
@@ -333,14 +333,17 @@ export default function LoginSelectorPage() {
         {/* Right Side: List of Rows */}
         <div className="portal-card-list">
           {portals.map(p => {
-            const isHovered = hoveredId === p.id
+            const isHovered = hoveredId === p.id;
+            const isExternal = p.to.startsWith('http');
+            const LinkComponent = isExternal ? 'a' : Link;
+            const linkProps = isExternal ? { href: p.to } : { to: p.to };
             return (
-              <Link
+              <LinkComponent
                 key={p.id}
-                to={p.to}
                 id={`select-${p.id}-portal`}
                 style={{ textDecoration: 'none' }}
                 onMouseEnter={() => setHoveredId(p.id)}
+                {...linkProps}
               >
                 <div
                   className="portal-row-card"
@@ -432,7 +435,7 @@ export default function LoginSelectorPage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </LinkComponent>
             )
           })}
         </div>

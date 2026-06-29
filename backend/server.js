@@ -3,10 +3,10 @@ const express = require('express')
 const http = require('http')
 const cors = require('cors')
 const morgan = require('morgan')
-const mongoose = require('mongoose')
 const rateLimit = require('express-rate-limit')
 const { Server } = require('socket.io')
 const connectDB = require('./config/db')
+const { sequelize } = require('./config/db')
 
 // Load environment variables if not loaded
 if (!process.env.PORT) {
@@ -60,10 +60,18 @@ io.on('connection', (socket) => {
 })
 
 // System Health Broadcast (Every 30 seconds)
-setInterval(() => {
+setInterval(async () => {
+  let dbStatus = 'offline'
+  try {
+    await sequelize.authenticate()
+    dbStatus = 'online'
+  } catch (err) {
+    console.error('Broadcast DB health check error:', err.message)
+  }
+
   const health = {
     database: {
-      status: mongoose.connection.readyState === 1 ? 'online' : 'offline',
+      status: dbStatus,
       responseTime: '12ms' // Mocked response time for now
     },
     api: {
@@ -89,7 +97,7 @@ app.use('/api/system', require('./routes/system'))
 app.use('/api/support', require('./routes/support'))
 app.use('/api/chat', require('./routes/chat'))
 
-const PORT = process.env.PORT || 5001
+const PORT = process.env.PORT || 5009
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

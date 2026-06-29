@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
-const User = require('../models/User')
-const AuditLog = require('../models/AuditLog')
+const { Op } = require('sequelize')
+const { User, AuditLog } = require('../models')
 
 const generateTokens = (userId, role) => {
   const token = jwt.sign(
@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
     }
 
     const query = role ? { email, role } : { email }
-    const user = await User.findOne(query).select('+password')
+    const user = await User.findOne({ where: query })
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials or incorrect portal' })
@@ -39,16 +39,16 @@ exports.login = async (req, res) => {
 
     const isMatch = await user.comparePassword(password)
     if (!isMatch) {
-      await AuditLog.create({ user: user._id, action: 'LOGIN_FAILED', status: 'failure', ipAddress: req.ip })
+      await AuditLog.create({ user_id: user.id, action: 'LOGIN_FAILED', status: 'failure', ipAddress: req.ip })
       return res.status(401).json({ success: false, message: 'Invalid credentials' })
     }
 
-    const { token, refreshToken } = generateTokens(user._id, user.role)
+    const { token, refreshToken } = generateTokens(user.id, user.role)
     user.refreshToken = refreshToken
     user.lastLogin = new Date()
     await user.save()
 
-    await AuditLog.create({ user: user._id, action: 'LOGIN_SUCCESS', status: 'success', ipAddress: req.ip })
+    await AuditLog.create({ user_id: user.id, action: 'LOGIN_SUCCESS', status: 'success', ipAddress: req.ip })
 
     res.json({
       success: true,
@@ -67,7 +67,7 @@ exports.login = async (req, res) => {
 exports.sendOTP = async (req, res) => {
   try {
     const { email } = req.body
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ where: { email } })
 
     if (!user) {
       // Don't reveal if email exists
@@ -93,7 +93,7 @@ exports.sendOTP = async (req, res) => {
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp, role } = req.body
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ where: { email } })
 
     if (!user || user.otp !== otp) {
       return res.status(400).json({ success: false, message: 'Invalid or expired OTP' })
@@ -105,10 +105,10 @@ exports.verifyOTP = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Incorrect portal for this account' })
     }
 
-    user.otp = undefined
-    user.otpExpiry = undefined
+    user.otp = null
+    user.otpExpiry = null
     user.lastLogin = new Date()
-    const { token, refreshToken } = generateTokens(user._id, user.role)
+    const { token, refreshToken } = generateTokens(user.id, user.role)
     user.refreshToken = refreshToken
     await user.save()
 
@@ -122,7 +122,7 @@ exports.verifyOTP = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ where: { email } })
 
     if (user) {
       const resetToken = crypto.randomBytes(32).toString('hex')
@@ -144,8 +144,10 @@ exports.resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body
     const user = await User.findOne({
-      passwordResetToken: token,
-      passwordResetExpiry: { $gt: new Date() },
+      where: {
+        passwordResetToken: token,
+        passwordResetExpiry: { [Op.gt]: new Date() }
+      }
     })
 
     if (!user) {
@@ -153,8 +155,8 @@ exports.resetPassword = async (req, res) => {
     }
 
     user.password = password
-    user.passwordResetToken = undefined
-    user.passwordResetExpiry = undefined
+    user.passwordResetToken = null
+    user.passwordResetExpiry = null
     await user.save()
 
     res.json({ success: true, message: 'Password reset successfully. You can now log in.' })
@@ -170,13 +172,13 @@ exports.refreshToken = async (req, res) => {
     if (!refreshToken) return res.status(401).json({ success: false, message: 'No refresh token' })
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
-    const user = await User.findById(decoded.id)
+    const user = await User.findByPk(decoded.id)
 
     if (!user || user.refreshToken !== refreshToken) {
       return res.status(401).json({ success: false, message: 'Invalid refresh token' })
     }
 
-    const tokens = generateTokens(user._id, user.role)
+    const tokens = generateTokens(user.id, user.role)
     user.refreshToken = tokens.refreshToken
     await user.save()
 
@@ -190,7 +192,7 @@ exports.refreshToken = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     if (req.user) {
-      await User.findByIdAndUpdate(req.user.id, { refreshToken: null })
+      await User.update({ refreshToken: null }, { where: { id: req.user.id } })
     }
     res.json({ success: true, message: 'Logged out successfully' })
   } catch (error) {
@@ -202,13 +204,58 @@ exports.logout = async (req, res) => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body
-    const existing = await User.findOne({ email })
+    const existing = await User.findOne({ where: { email } })
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' })
     }
     const user = await User.create({ name, email, password, role, phone })
     res.status(201).json({ success: true, data: user.toJSON(), message: 'User registered successfully' })
   } catch (error) {
+    console.error('Registration error:', error)
     res.status(500).json({ success: false, message: 'Registration failed' })
+  }
+}
+
+// POST /api/auth/subscribe (proxies to super-admin backend)
+exports.subscribePublic = async (req, res) => {
+  try {
+    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || 'http://localhost:5000'
+    const response = await fetch(`${superAdminUrl}/api/auth/register-hospital`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      return res.status(response.status).json(data)
+    }
+
+    res.status(response.status).json(data)
+  } catch (error) {
+    console.error('subscribePublic error:', error)
+    res.status(500).json({ success: false, message: 'Failed to communicate with provisioning service: ' + error.message })
+  }
+}
+
+// POST /api/auth/test-db-connection (proxies to super-admin backend)
+exports.testDbConnectionPublic = async (req, res) => {
+  try {
+    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || 'http://localhost:5000'
+    const response = await fetch(`${superAdminUrl}/api/auth/test-db-connection`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    })
+
+    const data = await response.json()
+    res.status(response.status).json(data)
+  } catch (error) {
+    console.error('testDbConnectionPublic proxy error:', error)
+    res.status(500).json({ success: false, message: 'Failed to communicate with DB validation service: ' + error.message })
   }
 }

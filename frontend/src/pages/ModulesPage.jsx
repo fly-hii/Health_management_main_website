@@ -62,8 +62,8 @@ export default function ModulesPage() {
         <div style={{ background: 'linear-gradient(135deg, #E6F4F2, #CBE7E5)', borderRadius: 24, padding: '48px', textAlign: 'center', marginTop: 60, color: '#0B1F3A', border: '1.5px solid #E2E8F0' }}>
           <h2 style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 900, fontSize: 32, marginBottom: 12, letterSpacing: '-0.02em' }}>All Modules. Zero Extra Cost.</h2>
           <p style={{ fontSize: 16, color: '#475569', marginBottom: 28, fontWeight: 500 }}>Every module is included in your CarePlus subscription. No tiered features, no surprise charges.</p>
-          <Link to="/pricing" className="btn-primary" style={{ background: '#0F9D8A', color: 'white', boxShadow: '0 8px 24px rgba(15,157,138,0.25)' }} id="modules-pricing-btn">
-            View Pricing <ArrowRight size={16} />
+          <Link to="/subscribe" className="btn-primary" style={{ background: '#0F9D8A', color: 'white', boxShadow: '0 8px 24px rgba(15,157,138,0.25)' }} id="modules-pricing-btn">
+            Get Started Now <ArrowRight size={16} />
           </Link>
         </div>
       </div>

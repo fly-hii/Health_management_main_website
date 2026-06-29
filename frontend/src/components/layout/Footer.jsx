@@ -7,7 +7,6 @@ const footerSections = [
     links: [
       { label: 'About Us', to: '/about' },
       { label: 'Features', to: '/features' },
-      { label: 'Pricing', to: '/pricing' },
       { label: 'Contact', to: '/contact' },
     ],
   },

@@ -1,49 +1,111 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/db')
 const bcrypt = require('bcryptjs')
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true, minlength: 6 },
-  role: {
-    type: String,
-    enum: ['admin', 'doctor', 'nurse', 'pharmacy', 'laboratory', 'patient'],
-    required: true,
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
   },
-  phone: { type: String },
-  avatar: { type: String },
-  isActive: { type: Boolean, default: true },
-  lastLogin: { type: Date },
-  refreshToken: { type: String },
-  otp: { type: String },
-  otpExpiry: { type: Date },
-  passwordResetToken: { type: String },
-  passwordResetExpiry: { type: Date },
-  permissions: [{ type: String }],
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true
+    }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  role: {
+    type: DataTypes.ENUM('admin', 'doctor', 'nurse', 'pharmacy', 'laboratory', 'patient'),
+    allowNull: false
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  avatar: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'last_login'
+  },
+  refreshToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'refresh_token'
+  },
+  otp: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  otpExpiry: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'otp_expiry'
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'password_reset_token'
+  },
+  passwordResetExpiry: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'password_reset_expiry'
+  },
+  permissions: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    get() {
+      const val = this.getDataValue('permissions')
+      return val ? JSON.parse(val) : []
+    },
+    set(val) {
+      this.setDataValue('permissions', val ? JSON.stringify(val) : null)
+    }
+  }
 }, {
-  timestamps: true,
+  tableName: 'main_users',
+  hooks: {
+    beforeSave: async (user) => {
+      if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(12)
+        user.password = await bcrypt.hash(user.password, salt)
+      }
+    }
+  }
 })
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
-  const salt = await bcrypt.genSalt(12)
-  this.password = await bcrypt.hash(this.password, salt)
-  next()
-})
-
-userSchema.methods.comparePassword = async function (candidatePassword) {
+User.prototype.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password)
 }
 
-userSchema.methods.toJSON = function () {
-  const obj = this.toObject()
-  delete obj.password
-  delete obj.refreshToken
-  delete obj.otp
-  delete obj.otpExpiry
-  delete obj.passwordResetToken
-  delete obj.passwordResetExpiry
-  return obj
+User.prototype.toJSON = function () {
+  const values = { ...this.get() }
+  delete values.password
+  delete values.refreshToken
+  delete values.otp
+  delete values.otpExpiry
+  delete values.passwordResetToken
+  delete values.passwordResetExpiry
+  return values
 }
 
-module.exports = mongoose.model('User', userSchema)
+module.exports = User

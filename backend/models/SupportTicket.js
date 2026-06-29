@@ -1,23 +1,63 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/db')
 
-const supportTicketSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  portal: { type: String, enum: ['admin', 'doctor', 'nurse', 'pharmacy', 'laboratory', 'patient'] },
-  priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-  subject: { type: String, required: true },
-  description: { type: String, required: true },
-  status: { type: String, enum: ['open', 'in_progress', 'resolved', 'closed'], default: 'open' },
-  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  resolvedAt: { type: Date },
-  ticketId: { type: String, unique: true },
-}, { timestamps: true })
-
-supportTicketSchema.pre('save', function (next) {
-  if (!this.ticketId) {
-    this.ticketId = `CP-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
+const SupportTicket = sequelize.define('SupportTicket', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isEmail: true
+    }
+  },
+  portal: {
+    type: DataTypes.ENUM('admin', 'doctor', 'nurse', 'pharmacy', 'laboratory', 'patient'),
+    allowNull: true
+  },
+  priority: {
+    type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
+    defaultValue: 'medium'
+  },
+  subject: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  status: {
+    type: DataTypes.ENUM('open', 'in_progress', 'resolved', 'closed'),
+    defaultValue: 'open'
+  },
+  resolvedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'resolved_at'
+  },
+  ticketId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    field: 'ticket_id'
   }
-  next()
+}, {
+  tableName: 'main_support_tickets',
+  hooks: {
+    beforeCreate: (ticket) => {
+      if (!ticket.ticketId) {
+        ticket.ticketId = `CP-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
+      }
+    }
+  }
 })
 
-module.exports = mongoose.model('SupportTicket', supportTicketSchema)
+module.exports = SupportTicket

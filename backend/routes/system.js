@@ -1,14 +1,22 @@
 const express = require('express')
 const router = express.Router()
-const mongoose = require('mongoose')
+const { sequelize } = require('../config/db')
 
-router.get('/health', (req, res) => {
+router.get('/health', async (req, res) => {
   const io = req.app.get('io')
   const liveUsers = io ? io.engine.clientsCount : 0
 
+  let dbStatus = 'offline'
+  try {
+    await sequelize.authenticate()
+    dbStatus = 'online'
+  } catch (error) {
+    console.error('System health check DB error:', error.message)
+  }
+
   const health = {
     database: {
-      status: mongoose.connection.readyState === 1 ? 'online' : 'offline',
+      status: dbStatus,
       responseTime: '12ms'
     },
     api: {

@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import FeaturesPage from './pages/FeaturesPage'
 import ModulesPage from './pages/ModulesPage'
-import PricingPage from './pages/PricingPage'
+import SubscriptionPage from './pages/SubscriptionPage'
 import ContactPage from './pages/ContactPage'
 import SystemStatusPage from './pages/SystemStatusPage'
 import SupportPage from './pages/SupportPage'
@@ -29,7 +29,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/modules" element={<ModulesPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/subscribe" element={<SubscriptionPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/system-status" element={<SystemStatusPage />} />
           <Route path="/support" element={<SupportPage />} />

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const SupportTicket = require('../models/SupportTicket')
+const { SupportTicket } = require('../models')
 
 router.post('/ticket', async (req, res) => {
   try {
@@ -13,6 +13,7 @@ router.post('/ticket', async (req, res) => {
 
     res.status(201).json({ success: true, data: ticket, message: 'Ticket created' })
   } catch (error) {
+    console.error('Support ticket creation error:', error)
     res.status(500).json({ success: false, message: 'Failed to create ticket', error: error.message })
   }
 })

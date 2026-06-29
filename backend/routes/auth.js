@@ -10,5 +10,7 @@ router.post('/reset-password', authController.resetPassword)
 router.post('/refresh', authController.refreshToken)
 router.post('/logout', authController.logout)
 router.post('/register', authController.register)
+router.post('/subscribe', authController.subscribePublic)
+router.post('/test-db-connection', authController.testDbConnectionPublic)
 
 module.exports = router

@@ -12,17 +12,17 @@ const navLinks = [
   { label: 'About Us', to: '/about' },
   { label: 'Features', to: '/features' },
   { label: 'Modules', to: '/modules' },
-  { label: 'Privacy Policy', to: '/privacy-policy' },
+  { label: 'Subscribe', to: '/subscribe' },
   { label: 'Contact', to: '/contact' },
 ]
 
 const portalLinks = [
-  { label: 'Admin', to: '/admin/login', icon: Shield, color: '#6366F1' },
-  { label: 'Doctor', to: '/doctor/login', icon: Stethoscope, color: '#0F9D8A' },
-  { label: 'Nurse', to: '/nurse/login', icon: UserCheck, color: '#8B5CF6' },
-  { label: 'Pharmacy', to: '/pharmacy/login', icon: Pill, color: '#F59E0B' },
+  { label: 'Admin', to: 'https://health-dashboards-hospital-admin-fr.vercel.app', icon: Shield, color: '#6366F1' },
+  { label: 'Doctor', to: 'https://health-dashboards-doctor-frontend.vercel.app', icon: Stethoscope, color: '#0F9D8A' },
+  { label: 'Nurse', to: 'https://health-dashboards-nurse-frontend.vercel.app', icon: UserCheck, color: '#8B5CF6' },
+  { label: 'Pharmacy', to: 'https://health-dashboards-pharma-frontend.vercel.app', icon: Pill, color: '#F59E0B' },
   { label: 'Laboratory', to: '/laboratory/login', icon: FlaskConical, color: '#10B981' },
-  { label: 'Patient', to: '/patient/login', icon: User, color: '#06B6D4' },
+  { label: 'Patient', to: 'https://health-dashboards-patient-frontend.vercel.app', icon: User, color: '#06B6D4' },
 ]
 
 const searchableItems = [
@@ -30,6 +30,7 @@ const searchableItems = [
   { title: 'About Us', path: '/about', category: 'Page' },
   { title: 'Features Overview', path: '/features', category: 'Page' },
   { title: 'Platform Modules', path: '/modules', category: 'Page' },
+  { title: 'Subscribe / Sign Up', path: '/subscribe', category: 'Page' },
   { title: 'Privacy Policy', path: '/privacy-policy', category: 'Page' },
   { title: 'Contact Us', path: '/contact', category: 'Page' },
   { title: 'System Status Monitor', path: '/system-status', category: 'Page' },
@@ -361,50 +362,55 @@ export default function Header() {
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 4 }}>
-                      {portalLinks.map((p) => (
-                        <Link
-                          key={p.to}
-                          to={p.to}
-                          onClick={() => setPortalOpen(false)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            padding: '10px 12px',
-                            borderRadius: 10,
-                            textDecoration: 'none',
-                            color: '#1E293B',
-                            transition: 'all 0.2s ease',
-                            textAlign: 'left',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(15, 157, 138, 0.06)';
-                            e.currentTarget.style.color = '#0F9D8A';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#1E293B';
-                          }}
-                        >
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 28,
-                            height: 28,
-                            borderRadius: '50%',
-                            background: `${p.color}15`,
-                            color: p.color,
-                          }}
+                      {portalLinks.map((p) => {
+                        const isExternal = p.to.startsWith('http');
+                        const LinkComponent = isExternal ? 'a' : Link;
+                        const linkProps = isExternal ? { href: p.to } : { to: p.to };
+                        return (
+                          <LinkComponent
+                            key={p.to}
+                            onClick={() => setPortalOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: '10px 12px',
+                              borderRadius: 10,
+                              textDecoration: 'none',
+                              color: '#1E293B',
+                              transition: 'all 0.2s ease',
+                              textAlign: 'left',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(15, 157, 138, 0.06)';
+                              e.currentTarget.style.color = '#0F9D8A';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#1E293B';
+                            }}
+                            {...linkProps}
                           >
-                            <p.icon size={15} />
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: 13.5, fontWeight: 600 }}>{p.label} Portal</span>
-                            <span style={{ fontSize: 10, color: '#64748B' }}>Access {p.label.toLowerCase()} features</span>
-                          </div>
-                        </Link>
-                      ))}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 28,
+                              height: 28,
+                              borderRadius: '50%',
+                              background: `${p.color}15`,
+                              color: p.color,
+                            }}
+                            >
+                              <p.icon size={15} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{p.label} Portal</span>
+                              <span style={{ fontSize: 10, color: '#64748B' }}>Access {p.label.toLowerCase()} features</span>
+                            </div>
+                          </LinkComponent>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}
@@ -471,21 +477,27 @@ export default function Header() {
 
             <div style={{ borderTop: '1px solid #F1F5F9', marginTop: 16, paddingTop: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Portals</div>
-              {portalLinks.map(p => (
-                <Link
-                  key={p.to} to={p.to}
-                  onClick={() => setMobileOpen(false)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '12px 14px', borderRadius: 10,
-                    textDecoration: 'none', color: '#0B1F3A',
-                    marginBottom: 4,
-                  }}
-                >
-                  <p.icon size={16} color={p.color} />
-                  <span style={{ fontWeight: 500 }}>{p.label} Portal</span>
-                </Link>
-              ))}
+              {portalLinks.map(p => {
+                const isExternal = p.to.startsWith('http');
+                const LinkComponent = isExternal ? 'a' : Link;
+                const linkProps = isExternal ? { href: p.to } : { to: p.to };
+                return (
+                  <LinkComponent
+                    key={p.to}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 14px', borderRadius: 10,
+                      textDecoration: 'none', color: '#0B1F3A',
+                      marginBottom: 4,
+                    }}
+                    {...linkProps}
+                  >
+                    <p.icon size={16} color={p.color} />
+                    <span style={{ fontWeight: 500 }}>{p.label} Portal</span>
+                  </LinkComponent>
+                );
+              })}
             </div>
 
             <div style={{ marginTop: 24 }}>

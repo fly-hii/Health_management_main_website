@@ -1,14 +1,52 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/db')
 
-const auditLogSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  action: { type: String, required: true },
-  resource: { type: String },
-  resourceId: { type: String },
-  ipAddress: { type: String },
-  userAgent: { type: String },
-  status: { type: String, enum: ['success', 'failure'], default: 'success' },
-  metadata: { type: mongoose.Schema.Types.Mixed },
-}, { timestamps: true })
+const AuditLog = sequelize.define('AuditLog', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  action: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  resource: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  resourceId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'resource_id'
+  },
+  ipAddress: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'ip_address'
+  },
+  userAgent: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'user_agent'
+  },
+  status: {
+    type: DataTypes.ENUM('success', 'failure'),
+    defaultValue: 'success'
+  },
+  metadata: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    get() {
+      const val = this.getDataValue('metadata')
+      return val ? JSON.parse(val) : null
+    },
+    set(val) {
+      this.setDataValue('metadata', val ? JSON.stringify(val) : null)
+    }
+  }
+}, {
+  tableName: 'main_audit_logs'
+})
 
-module.exports = mongoose.model('AuditLog', auditLogSchema)
+module.exports = AuditLog

@@ -6,12 +6,12 @@ import { toast } from 'react-toastify'
 const AuthContext = createContext(null)
 
 const PORTAL_URLS = {
-  admin: import.meta.env.VITE_ADMIN_URL || 'http://localhost:5173',
-  doctor: import.meta.env.VITE_DOCTOR_URL || 'http://localhost:5174',
-  nurse: import.meta.env.VITE_NURSE_URL || 'http://localhost:5175',
-  pharmacy: import.meta.env.VITE_PHARMACY_URL || 'http://localhost:5176',
+  admin: import.meta.env.VITE_ADMIN_URL || 'https://health-dashboards-hospital-admin-fr.vercel.app',
+  doctor: import.meta.env.VITE_DOCTOR_URL || 'https://health-dashboards-doctor-frontend.vercel.app',
+  nurse: import.meta.env.VITE_NURSE_URL || 'https://health-dashboards-nurse-frontend.vercel.app',
+  pharmacy: import.meta.env.VITE_PHARMACY_URL || 'https://health-dashboards-pharma-frontend.vercel.app',
   laboratory: import.meta.env.VITE_LAB_URL || 'http://localhost:5177',
-  patient: import.meta.env.VITE_PATIENT_URL || 'http://localhost:5178',
+  patient: import.meta.env.VITE_PATIENT_URL || 'https://health-dashboards-patient-frontend.vercel.app',
 }
 
 export function AuthProvider({ children }) {
