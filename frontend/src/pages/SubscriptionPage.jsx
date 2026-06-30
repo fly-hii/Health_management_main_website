@@ -48,27 +48,27 @@ const formatPrice = (price, currency) => {
 const DEFAULT_PLANS = [
   {
     id: 'basic',
-    name: 'Starter Plan',
-    price: 299,
-    priceLabel: '$299',
+    name: '',
+    price: "",
+    priceLabel: '',
     desc: 'Perfect for small clinics and private practices.',
     color: '#06B6D4',
     features: ['Up to 5 doctors', 'Up to 500 patients', 'Patient Management', 'Appointment System', 'Basic Billing', 'Email Support']
   },
   {
     id: 'standard',
-    name: 'Professional Plan',
-    price: 499,
-    priceLabel: '$499',
+    name: '',
+    price: "",
+    priceLabel: '',
     desc: 'Ideal for mid-size hospitals and multiple clinics.',
     color: '#0F9D8A',
     features: ['Up to 50 doctors', 'Up to 5,000 patients', 'Pharmacy Module', 'Laboratory Module', 'Analytics Dashboard', 'SMS Notifications', 'Priority Support']
   },
   {
-    id: 'premium',
-    name: 'Premium Suite',
-    price: 699,
-    priceLabel: '$699',
+    id: 'enterprise',
+    name: '',
+    price: "",
+    priceLabel: '',
     desc: 'For large hospital networks and medical groups.',
     color: '#6366F1',
     features: ['Unlimited doctors & staff', 'Unlimited patients', 'Custom roles & permissions', 'Dedicated Server Config', 'SLA Uptime Guarantee', '24/7 Phone Support']
@@ -824,8 +824,8 @@ export default function SubscriptionPage() {
                         !dbTypeSelected
                           ? 'Please select a database type to continue'
                           : dbType === 'external' && !byodFieldsFilled
-                          ? 'Please fill in all database credential fields'
-                          : ''
+                            ? 'Please fill in all database credential fields'
+                            : ''
                       }
                       style={{
                         flex: 2,
@@ -855,8 +855,8 @@ export default function SubscriptionPage() {
                       {!dbTypeSelected
                         ? '⬆ Please select a database type above to continue'
                         : dbType === 'external' && !byodFieldsFilled
-                        ? '⬆ Fill in all BYOD credential fields (Host, DB Name, Username, Password) to continue'
-                        : ''}
+                          ? '⬆ Fill in all BYOD credential fields (Host, DB Name, Username, Password) to continue'
+                          : ''}
                     </p>
                   )}
                 </div>
