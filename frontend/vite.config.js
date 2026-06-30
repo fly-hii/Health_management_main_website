@@ -3,10 +3,15 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),
   ],
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  },
   server: {
     port: 3000,
     proxy: {
@@ -20,5 +25,8 @@ export default defineConfig({
         ws: true,
       },
     },
+  },
+  preview: {
+    port: 3000,
   },
 })
