@@ -38,7 +38,14 @@ const registerSchema = z.object({
 })
 
 
-const PLANS = [
+const formatPrice = (price, currency) => {
+  const n = Number(price) || 0
+  const amount = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(2)
+  return !currency || currency === 'USD' ? `$${amount}` : `${currency} ${amount}`
+}
+
+// Fallback catalogue — used until live prices are fetched from the Super Admin backend.
+const DEFAULT_PLANS = [
   {
     id: 'basic',
     name: 'Starter Plan',
@@ -70,7 +77,8 @@ const PLANS = [
 
 export default function SubscriptionPage() {
   const location = useLocation()
-  const [selectedPlan, setSelectedPlan] = useState(PLANS[0])
+  const [plans, setPlans] = useState(DEFAULT_PLANS)
+  const [selectedPlan, setSelectedPlan] = useState(DEFAULT_PLANS[0])
   const [billingCycle, setBillingCycle] = useState('monthly')
   const [step, setStep] = useState(1) // 1: Details & Plan, 2: Payment, 3: DB Config, 4: Admin Account, 5: Success
   const [loading, setLoading] = useState(false)
@@ -82,13 +90,36 @@ export default function SubscriptionPage() {
   const [showDbPassword, setShowDbPassword] = useState(false)
   const [dbTypeSelected, setDbTypeSelected] = useState(false) // tracks if user explicitly picked a DB type
 
+  // Fetch live plan prices managed by Super Admin (falls back to defaults on any error)
+  useEffect(() => {
+    const base = import.meta.env.VITE_SUPER_BACKEND_URL
+    if (!base) return
+    axios.get(`${base}/api/public/plans`)
+      .then(({ data }) => {
+        if (data?.success && Array.isArray(data.data) && data.data.length) {
+          const mapped = data.data.map(p => ({
+            id: p.plan_key,
+            name: p.name,
+            price: Number(p.price),
+            priceLabel: formatPrice(p.price, p.currency),
+            desc: p.description,
+            color: p.color,
+            features: Array.isArray(p.features) ? p.features : [],
+          }))
+          setPlans(mapped)
+          setSelectedPlan(prev => mapped.find(m => m.id === prev.id) || mapped[0])
+        }
+      })
+      .catch(() => { /* keep default plans */ })
+  }, [])
+
   // Pre-select plan from location state if coming from Pricing page
   useEffect(() => {
     if (location.state?.planId) {
-      const found = PLANS.find(p => p.id === location.state.planId)
+      const found = plans.find(p => p.id === location.state.planId)
       if (found) setSelectedPlan(found)
     }
-  }, [location.state])
+  }, [location.state, plans])
 
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
     resolver: zodResolver(registerSchema),
@@ -185,6 +216,7 @@ export default function SubscriptionPage() {
     e.preventDefault()
     const name = watch('name')
     const code = watch('code')
+    const email = watch('email')
     const phone = watch('phone')
     const address = watch('address')
     const city = watch('city')
@@ -192,6 +224,7 @@ export default function SubscriptionPage() {
 
     if (!name || name.length < 3) return toast.warning('Please enter a valid hospital name')
     if (!code || code.length < 3) return toast.warning('Please enter a valid unique code')
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.warning('Please enter a valid email address')
     if (!phone || phone.length < 10) return toast.warning('Please enter a valid phone number')
     if (!address || !city || !state) return toast.warning('Please enter hospital address details')
 
@@ -337,7 +370,7 @@ export default function SubscriptionPage() {
               <div>
                 <h3 style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: 18, color: '#0B1F3A', marginBottom: 18 }}>1. Select Your Subscription Plan</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="plans-grid">
-                  {PLANS.map(p => {
+                  {plans.map(p => {
                     const isSelected = selectedPlan.id === p.id
                     return (
                       <div
@@ -430,7 +463,11 @@ export default function SubscriptionPage() {
                       </div>
                     </div>
 
-
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Email Address *</label>
+                      <input {...register('email')} type="email" placeholder="contact@stmarys.com" className="form-input" />
+                      {errors.email && <p style={{ color: '#EF4444', fontSize: 12, marginTop: 4 }}>{errors.email.message}</p>}
+                    </div>
 
                     <div>
                       <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 6 }}>Contact Phone *</label>
@@ -473,7 +510,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Billing cycle & Order Summary */}
-                <div style={{ background: '#0B1F3A', borderRadius: 24, padding: 28, color: 'white', alignSelf: 'start' }}>
+                <div style={{ background: '#0B1F3A', borderRadius: 24, padding: 28, color: 'white', alignSelf: 'start', position: 'sticky', top: 100 }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, marginBottom: 16 }}>Order Summary</h4>
 
                   {/* Cycle Selector */}
