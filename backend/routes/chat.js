@@ -1,7 +1,18 @@
 const express = require('express')
 const router = express.Router()
+const rateLimit = require('express-rate-limit')
 
-router.post('/', async (req, res) => {
+// Rate limiter for the AI chat proxy
+// Prevents abuse of the Gemini API key by unauthenticated callers
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: { success: false, message: 'Too many chat requests. Please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+router.post('/', chatLimiter, async (req, res) => {
   try {
     const { messages } = req.body
 
@@ -9,14 +20,21 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid messages array' })
     }
 
+    // SECURITY: Cap messages to prevent token exhaustion attacks
+    if (messages.length > 50) {
+      return res.status(400).json({ success: false, message: 'Too many messages in request (max 50)' })
+    }
+
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
       return res.status(500).json({ success: false, message: 'GEMINI_API_KEY is not configured on the server' })
     }
 
-    // Format history for Gemini API.
-    // Gemini API contents format: [ { role: 'user' | 'model', parts: [ { text: '...' } ] } ]
-    const contents = messages.map(msg => {
+    // SECURITY: Only allow valid roles to prevent prompt injection
+    const ALLOWED_ROLES = new Set(['user', 'model', 'assistant'])
+    const contents = messages
+      .filter(msg => ALLOWED_ROLES.has(msg.role))
+      .map(msg => {
       let role = 'user'
       if (msg.role === 'assistant' || msg.role === 'model') {
         role = 'model'

@@ -88,6 +88,10 @@ setInterval(async () => {
     console.error('Broadcast DB health check error:', err.message)
   }
 
+  const mem = process.memoryUsage();
+  const memUsedMb = (mem.rss / 1024 / 1024).toFixed(1);
+  const memTotalMb = (mem.heapTotal / 1024 / 1024).toFixed(1);
+
   const health = {
     database: {
       status: dbStatus,
@@ -95,7 +99,7 @@ setInterval(async () => {
     },
     api: {
       status: 'online',
-      uptime: `${(process.uptime() / 3600).toFixed(2)}%`,
+      uptime: `${Math.floor(process.uptime())}s`,
       responseTime: '45ms'
     },
     socket: {
@@ -104,8 +108,8 @@ setInterval(async () => {
     },
     server: {
       status: 'online',
-      cpu: '23%',
-      memory: '68%'
+      memory: `${memUsedMb}MB / ${memTotalMb}MB`,
+      node: process.version
     }
   }
   io.emit('system_health', health)
