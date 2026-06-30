@@ -28,7 +28,7 @@ const registerSchema = z.object({
   cardName: z.string().optional(),
   cardExpiry: z.string().optional(),
   cardCvv: z.string().optional(),
-  database_type: z.enum(['shared', 'external']).default('shared'),
+  database_type: z.string().optional(),
   db_host: z.string().optional(),
   db_port: z.any().optional(),
   db_name: z.string().optional(),
@@ -80,6 +80,7 @@ export default function SubscriptionPage() {
   const [connectionMessage, setConnectionMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showDbPassword, setShowDbPassword] = useState(false)
+  const [dbTypeSelected, setDbTypeSelected] = useState(false) // tracks if user explicitly picked a DB type
 
   // Pre-select plan from location state if coming from Pricing page
   useEffect(() => {
@@ -97,7 +98,7 @@ export default function SubscriptionPage() {
       cardName: '',
       cardExpiry: '',
       cardCvv: '',
-      database_type: 'shared',
+      database_type: '',
       db_host: '',
       db_port: 3306,
       db_name: '',
@@ -108,6 +109,11 @@ export default function SubscriptionPage() {
   })
 
   const formValues = watch()
+
+  // Determine if the Save & Configure Credentials button should be active
+  const dbType = formValues.database_type
+  const byodFieldsFilled = !!(formValues.db_host && formValues.db_name && formValues.db_user && formValues.db_password)
+  const canProceedDb = dbTypeSelected && (dbType === 'shared' || (dbType === 'external' && byodFieldsFilled))
 
   // Reset connection status if DB connection credentials change
   useEffect(() => {
@@ -588,7 +594,7 @@ export default function SubscriptionPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="split-checkout">
                   {/* Option 1: Shared DB */}
                   <div
-                    onClick={() => setValue('database_type', 'shared')}
+                    onClick={() => { setValue('database_type', 'shared'); setDbTypeSelected(true) }}
                     style={{
                       border: `2px solid ${watch('database_type') === 'shared' ? '#0F9D8A' : '#E2E8F0'}`,
                       background: watch('database_type') === 'shared' ? 'rgba(15,157,138,0.02)' : 'none',
@@ -614,7 +620,7 @@ export default function SubscriptionPage() {
 
                   {/* Option 2: BYOD */}
                   <div
-                    onClick={() => setValue('database_type', 'external')}
+                    onClick={() => { setValue('database_type', 'external'); setDbTypeSelected(true) }}
                     style={{
                       border: `2px solid ${watch('database_type') === 'external' ? '#0F9D8A' : '#E2E8F0'}`,
                       background: watch('database_type') === 'external' ? 'rgba(15,157,138,0.02)' : 'none',
@@ -765,20 +771,57 @@ export default function SubscriptionPage() {
                   </motion.div>
                 )}
 
-                <div style={{ display: 'flex', gap: 16, paddingTop: 20 }}>
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    style={{ flex: 1, padding: '14px', border: '2px solid #E2E8F0', background: 'none', borderRadius: 12, fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Back to Payment
-                  </button>
-                  <button
-                    type="submit"
-                    style={{ flex: 2, padding: '14px', background: '#0F9D8A', color: 'white', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(15,157,138,0.3)' }}
-                  >
-                    Save & Configure Credentials <ArrowRight size={18} />
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 20 }}>
+                  <div style={{ display: 'flex', gap: 16 }}>
+                    <button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      style={{ flex: 1, padding: '14px', border: '2px solid #E2E8F0', background: 'none', borderRadius: 12, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Back to Payment
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!canProceedDb}
+                      title={
+                        !dbTypeSelected
+                          ? 'Please select a database type to continue'
+                          : dbType === 'external' && !byodFieldsFilled
+                          ? 'Please fill in all database credential fields'
+                          : ''
+                      }
+                      style={{
+                        flex: 2,
+                        padding: '14px',
+                        background: canProceedDb ? '#0F9D8A' : '#CBD5E1',
+                        color: canProceedDb ? 'white' : '#94A3B8',
+                        border: 'none',
+                        borderRadius: 12,
+                        fontWeight: 700,
+                        fontSize: 16,
+                        cursor: canProceedDb ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        boxShadow: canProceedDb ? '0 4px 14px rgba(15,157,138,0.3)' : 'none',
+                        transition: 'all 0.25s ease',
+                        opacity: canProceedDb ? 1 : 0.7,
+                      }}
+                    >
+                      Save & Configure Credentials <ArrowRight size={18} />
+                    </button>
+                  </div>
+                  {/* Inline hint when button is disabled */}
+                  {!canProceedDb && (
+                    <p style={{ textAlign: 'right', fontSize: 12, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
+                      {!dbTypeSelected
+                        ? '⬆ Please select a database type above to continue'
+                        : dbType === 'external' && !byodFieldsFilled
+                        ? '⬆ Fill in all BYOD credential fields (Host, DB Name, Username, Password) to continue'
+                        : ''}
+                    </p>
+                  )}
                 </div>
               </form>
             </motion.div>
