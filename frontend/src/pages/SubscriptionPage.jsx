@@ -58,7 +58,7 @@ const DEFAULT_PLANS = [
   {
     id: 'standard',
     name: '',
-    price: "",
+    price: '',
     priceLabel: '',
     desc: 'Ideal for mid-size hospitals and multiple clinics.',
     color: '#0F9D8A',
@@ -89,11 +89,15 @@ export default function SubscriptionPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showDbPassword, setShowDbPassword] = useState(false)
   const [dbTypeSelected, setDbTypeSelected] = useState(false) // tracks if user explicitly picked a DB type
+  const [loadingPrices, setLoadingPrices] = useState(true)
 
   // Fetch live plan prices managed by Super Admin (falls back to defaults on any error)
   useEffect(() => {
     const base = import.meta.env.VITE_SUPER_BACKEND_URL
-    if (!base) return
+    if (!base) {
+      setLoadingPrices(false)
+      return
+    }
     axios.get(`${base}/api/public/plans`)
       .then(({ data }) => {
         if (data?.success && Array.isArray(data.data) && data.data.length) {
@@ -111,6 +115,9 @@ export default function SubscriptionPage() {
         }
       })
       .catch(() => { /* keep default plans */ })
+      .finally(() => {
+        setLoadingPrices(false)
+      })
   }, [])
 
   // Pre-select plan from location state if coming from Pricing page
@@ -375,19 +382,20 @@ export default function SubscriptionPage() {
                     return (
                       <div
                         key={p.id}
-                        onClick={() => setSelectedPlan(p)}
+                        onClick={() => !loadingPrices && setSelectedPlan(p)}
                         style={{
                           background: 'white',
                           borderRadius: 24,
                           padding: 28,
                           border: isSelected ? `3px solid ${p.color}` : '2.5px solid #E2E8F0',
-                          cursor: 'pointer',
+                          cursor: loadingPrices ? 'not-allowed' : 'pointer',
                           position: 'relative',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'space-between',
                           transition: 'all 0.2s',
                           boxShadow: isSelected ? `0 12px 30px ${p.color}15` : '0 4px 12px rgba(0, 0, 0, 0.01)',
+                          opacity: loadingPrices ? 0.7 : 1,
                         }}
                         className="plan-card-vertical"
                       >
@@ -401,11 +409,21 @@ export default function SubscriptionPage() {
                           </div>
                         )}
                         <div>
-                          <h4 style={{ fontWeight: 800, fontSize: 18, color: '#0B1F3A', marginBottom: 6 }}>{p.name}</h4>
+                          <h4 style={{ fontWeight: 800, fontSize: 18, color: '#0B1F3A', marginBottom: 6 }}>
+                            {loadingPrices ? 'Loading plan...' : p.name}
+                          </h4>
                           <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.4, marginBottom: 16 }}>{p.desc}</p>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 20 }}>
-                            <span style={{ fontWeight: 950, fontSize: 32, color: '#0B1F3A' }}>{p.priceLabel}</span>
-                            <span style={{ fontSize: 13, color: '#94A3B8' }}>/ month</span>
+                            <span style={{ fontWeight: 950, fontSize: 32, color: '#0B1F3A' }}>
+                              {loadingPrices ? (
+                                <span style={{ fontSize: 18, color: '#94A3B8', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <Loader2 className="animate-spin" size={16} /> Loading...
+                                </span>
+                              ) : (
+                                p.priceLabel
+                              )}
+                            </span>
+                            {!loadingPrices && <span style={{ fontSize: 13, color: '#94A3B8' }}>/ month</span>}
                           </div>
 
                           {/* Divider */}
@@ -424,15 +442,18 @@ export default function SubscriptionPage() {
 
                         <button
                           type="button"
+                          disabled={loadingPrices}
                           style={{
                             width: '100%', padding: '11px', borderRadius: 12,
                             border: isSelected ? 'none' : `2px solid ${p.color}`,
                             background: isSelected ? p.color : 'transparent',
                             color: isSelected ? 'white' : p.color,
-                            fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s'
+                            fontWeight: 700, fontSize: 13,
+                            cursor: loadingPrices ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s'
                           }}
                         >
-                          {isSelected ? 'Plan Selected' : 'Select Plan'}
+                          {loadingPrices ? 'Please wait...' : (isSelected ? 'Plan Selected' : 'Select Plan')}
                         </button>
                       </div>
                     )
@@ -501,9 +522,26 @@ export default function SubscriptionPage() {
                     <div style={{ paddingTop: 20 }}>
                       <button
                         onClick={handleNextStep}
-                        style={{ width: '100%', padding: '14px 28px', background: '#0F9D8A', color: 'white', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(15,157,138,0.3)' }}
+                        disabled={loadingPrices}
+                        style={{
+                          width: '100%', padding: '14px 28px',
+                          background: loadingPrices ? '#94A3B8' : '#0F9D8A',
+                          color: 'white', border: 'none', borderRadius: 12,
+                          fontWeight: 700, fontSize: 16,
+                          cursor: loadingPrices ? 'not-allowed' : 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          boxShadow: loadingPrices ? 'none' : '0 4px 14px rgba(15,157,138,0.3)'
+                        }}
                       >
-                        Proceed to Secure Payment <ArrowRight size={18} />
+                        {loadingPrices ? (
+                          <>
+                            <Loader2 className="animate-spin" size={18} /> Loading Plans & Prices...
+                          </>
+                        ) : (
+                          <>
+                            Proceed to Secure Payment <ArrowRight size={18} />
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
@@ -532,8 +570,8 @@ export default function SubscriptionPage() {
                   {/* Calculations */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 16, marginBottom: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ opacity: 0.8 }}>{selectedPlan.name} ({billingCycle === 'yearly' ? 'Yearly Billing' : 'Monthly Billing'})</span>
-                      <span>${selectedPlan.price}.00</span>
+                      <span style={{ opacity: 0.8 }}>{loadingPrices ? 'Plan' : selectedPlan.name} ({billingCycle === 'yearly' ? 'Yearly Billing' : 'Monthly Billing'})</span>
+                      <span>{loadingPrices ? '...' : `$${selectedPlan.price}.00`}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ opacity: 0.8 }}>Setup Fee</span>
@@ -542,7 +580,7 @@ export default function SubscriptionPage() {
                     {billingCycle === 'yearly' && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981' }}>
                         <span>Yearly Discount (15%)</span>
-                        <span>-${(selectedPlan.price * 12 * 0.15).toFixed(0)}.00</span>
+                        <span>{loadingPrices ? '...' : `-$${(selectedPlan.price * 12 * 0.15).toFixed(0)}.00`}</span>
                       </div>
                     )}
                   </div>
@@ -550,7 +588,7 @@ export default function SubscriptionPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 700, fontSize: 14 }}>Total to Pay:</span>
                     <span style={{ fontWeight: 900, fontSize: 24, color: '#10B981' }}>
-                      ${billingCycle === 'yearly' ? (selectedPlan.price * 12 * 0.85).toFixed(0) : selectedPlan.price}.00
+                      {loadingPrices ? '...' : `$${billingCycle === 'yearly' ? (selectedPlan.price * 12 * 0.85).toFixed(0) : selectedPlan.price}.00`}
                     </span>
                   </div>
                 </div>
