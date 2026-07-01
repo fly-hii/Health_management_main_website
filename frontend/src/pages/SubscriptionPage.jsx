@@ -15,7 +15,7 @@ import {
 // Validation schemas
 const registerSchema = z.object({
   name: z.string().min(3, 'Hospital name must be at least 3 characters'),
-  code: z.string().min(3, 'Hospital code must be at least 3 characters').regex(/^[A-Z0-9]+$/, 'Only capital letters and numbers allowed'),
+  code: z.string().min(3, 'Hospital code must be at least 3 characters').regex(/^[a-zA-Z0-9]+$/, 'Only letters and numbers allowed'),
   email: z.string().email('Please enter a valid email address'),
   adminPassword: z.string().min(8, 'Password must be at least 8 characters'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
