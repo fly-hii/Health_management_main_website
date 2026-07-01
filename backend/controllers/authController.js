@@ -251,7 +251,7 @@ exports.register = async (req, res) => {
 // POST /api/auth/subscribe (proxies to super-admin backend)
 exports.subscribePublic = async (req, res) => {
   try {
-    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || 'http://localhost:5000'
+    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || (process.env.NODE_ENV === 'production' ? 'https://health-dashboards-super-admin-backe.vercel.app' : 'http://localhost:5000')
     const response = await fetch(`${superAdminUrl}/api/auth/register-hospital`, {
       method: 'POST',
       headers: {
@@ -275,7 +275,7 @@ exports.subscribePublic = async (req, res) => {
 // POST /api/auth/test-db-connection (proxies to super-admin backend)
 exports.testDbConnectionPublic = async (req, res) => {
   try {
-    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || 'http://localhost:5000'
+    const superAdminUrl = process.env.SUPER_ADMIN_API_URL || (process.env.NODE_ENV === 'production' ? 'https://health-dashboards-super-admin-backe.vercel.app' : 'http://localhost:5000')
     const response = await fetch(`${superAdminUrl}/api/auth/test-db-connection`, {
       method: 'POST',
       headers: {
